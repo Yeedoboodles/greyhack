@@ -100,8 +100,7 @@ counter_func = function(a)
         print("$T;<i><size=13px>(IRL times)")
     else
 		while true
-			wait(0.1)
-			clear_screen
+			print("", true)
         	u = calculate_0day(current_date)
         	print("<color=#ffb62e>0day Countdown")
         	print("<color=#ff2eaf>Days    : "   + u.days)
