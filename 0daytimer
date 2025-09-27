@@ -1,0 +1,112 @@
+// All the code done by JessaTheCrow
+// I just converted the 0day.src file from JessaTheCrow into only a timer.
+months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+days = [31,28,31,30,31,30,31,31,30,31,30,31]
+
+get_month = function(month, year)
+    return days[months.indexOf(month)] + (month == "Feb" and year%4==0)
+end function
+
+minutes_to_irl_seconds = function(mins)
+    return mins*(60/14)
+end function
+
+
+seconds_to_human_readable = function(secs)
+    days_until = floor(secs/3600/24)
+    hours_until = floor(secs/3600)%24
+    minutes_until = floor((secs/60))%60
+    seconds_until = floor(secs)%60
+
+    return {
+        "days":days_until,
+        "hours":hours_until,
+        "minutes":minutes_until,
+        "seconds":seconds_until,
+    }
+end function
+
+get_next_0day_minutes = function(min, hour, day, month, year)
+    month_index = months.indexOf(month)+1
+    days_remaining = get_month(month) - day
+
+    if month_index%2 == 0 then 
+        days_remaining = days_remaining + get_month(months[month_index%len(months)])
+    end if
+
+    hours_remaining = 23-hour%24
+    minutes_remaining = 60-min
+    
+    hours_remaining =  hours_remaining + days_remaining*24
+    minutes_remaining = minutes_remaining + hours_remaining*60
+
+    return minutes_remaining
+end function
+
+parse_date = function(raw_date)
+    sep = raw_date.split("-")
+
+    time_string = sep[1].trim
+    date_string = sep[0].trim
+
+    hour = time_string.split(":")[0].to_int
+    min = time_string.split(":")[1].to_int
+
+    day = date_string.split("/")[0].to_int
+    month = date_string.split("/")[1]
+    year = date_string.split("/")[2].to_int
+    
+    return {
+        "day":day,
+        "month":month,
+        "year":year,
+        "hour":hour,
+        "min":min,
+    }
+end function 
+
+calculate_0day = function(raw_date)
+    date = parse_date(raw_date)
+    minutes = get_next_0day_minutes(date.min, date.hour, date.day, date.month, date.year)
+    return seconds_to_human_readable(minutes_to_irl_seconds(minutes))
+end function
+
+remaining_0day = function(raw_date)
+    date = parse_date(raw_date)
+    month_index = months.indexOf(date.month) + 1
+    if month_index % 2 != 0 then return 0
+    if date.day >= 15 then return 0
+    
+    remaining_days = 14-date.day
+    remaining_hours = 24-date.hour + (remaining_days*24)
+    remaining_minutes = 60-date.min + (remaining_hours*60)
+
+    seconds = minutes_to_irl_seconds(remaining_minutes)
+    readable = seconds_to_human_readable(seconds)
+
+    return readable
+end function
+
+counter_func = function(a)
+    active = remaining_0day(current_date)
+    if active != 0 then
+        print("$error;0day ends in")
+        print("$zday;Days    $T;: $T2;"+ active.days)
+        print("$zday;Hours   $T;: $T2;"+ active.hours)
+        print("$zday;Minutes $T;: $T2;"+ active.minutes)
+        print("$zday;Seconds $T;: $T2;"+ active.seconds)
+        print("$T;<i><size=13px>(IRL times)")
+    else
+		while true
+			wait(0.1)
+			clear_screen
+        	u = calculate_0day(current_date)
+        	print("<color=#ffb62e>0day Countdown")
+        	print("<color=#ff2eaf>Days    : "   + u.days)
+			print("<color=#ff2eaf>Hours   : "   + u.hours)
+			print("<color=#ff2eaf>Minutes : " + u.minutes)
+			print("<color=#ff2eaf>Seconds : "  + u.seconds)
+		end while
+    end if
+end function
+counter_func()
